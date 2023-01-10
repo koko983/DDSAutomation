@@ -1,10 +1,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium.Appium.Windows;
 using OpenQA.Selenium.Appium;
-using System.Collections.Generic;
 using System;
 using System.Linq;
 using OpenQA.Selenium;
+using System.Threading;
 
 namespace DDSAutomation
 {
@@ -21,7 +21,7 @@ namespace DDSAutomation
             var desktopCapabilities = new AppiumOptions();
             desktopCapabilities.AddAdditionalCapability("app", "Root");
             desktopCapabilities.AddAdditionalCapability("deviceName", "WindowsPC");
-            this.desktopSession = new WindowsDriver<WindowsElement>(new Uri(WindowsApplicationDriverUrl), desktopCapabilities, TimeSpan.FromMinutes(2));
+            this.desktopSession = new WindowsDriver<WindowsElement>(new Uri(WindowsApplicationDriverUrl), desktopCapabilities, TimeSpan.FromMinutes(1.5));
             var windows = desktopSession.FindElementsByXPath("//Window");
             Console.WriteLine("Windows " + windows.Count);
             var window = windows.FirstOrDefault(w => w.Text.Contains("Digital Design"));
@@ -44,36 +44,6 @@ namespace DDSAutomation
             desktopSession.Quit();
         }
 
-        public void Log(params string[] things)
-        {
-            foreach (var something in things)
-            {
-                Console.WriteLine(something);
-            }
-        }
-
-        void LogAttributes(AppiumWebElement element, params string[] attributeNames)
-        {
-            foreach (var item in attributeNames)
-            {
-                Log(item, element.GetAttribute(item));
-            }
-        }
-
-        public void Log<T>(T element) where T : AppiumWebElement
-        {
-            Log("Text", element.Text, "Name", element.GetAttribute("Name"), "TagName", element.TagName, "ClassName", element.GetAttribute("ClassName"), "Value", element.GetAttribute("Value"), element.GetAttribute("value"), "IsReadOnly", element.GetAttribute("IsReadOnly"), "AutoId", element.GetAttribute("AutomationId"));
-            LogAttributes(element, "HelpText", "FrameworkId", "ControlType", "BoundingRectangle", "AccessKey", "FullDescription", "HasKeyboardFocus");
-        }
-
-        public void LoopAndLog<T>(IReadOnlyCollection<T> elements) where T : AppiumWebElement
-        {
-            Log($"Count is {elements.Count}");
-            foreach (var element in elements)
-            {
-                Log(element);
-            }
-        }
 
         [TestMethod]
         public void CaseBox_GetFirstDeleteBtn()
@@ -81,73 +51,44 @@ namespace DDSAutomation
             var btn1 = ddsSession.FindElementByClassName("button");
             var btn2 = ddsSession.FindElementByTagName("ControlType.Button");
             var delBtn = ddsSession.FindElementByAccessibilityId("DeleteMode");
-            LoopAndLog(new[] { btn1, btn2, delBtn });
+            Logger.LoopAndLog(new[] { btn1, btn2, delBtn });
         }
 
         public void WaysToFindElement()
         {
             //var btn1 = ddsSession.FindElementByClassName("button");
             //var btn2 = ddsSession.FindElementByTagName("ControlType.Button");
+            //var kk = ddsSession.FindElementsByXPath("//Button[text = 'reset']");
             //var btn3 = ddsSession.FindElementByAccessibilityId("DeleteMode");
             //session.FindElementByXPath("//Button[@AutomationId=\"equalButton\"]").Click();
             //session.FindElementByName("One").Click();
-        }
 
-        [TestMethod]
-        public void LocatingStuff()
-        {
-            try
-            {
+            //var edits = ddsSession.FindElementsByClassName("TextBox");
+            //var edits = ddsSession.FindElementsByTagName("ControlType.Edit");
+            //var texts = ddsSession.FindElementsByClassName("TextBlock");
+            //var texts = ddsSession.FindElementsByTagName("ControlType.Text");
 
-                var kpss = ddsSession.FindElementByAccessibilityId("btnAvailableRefresh");
-                Log(kpss);
-            }
-            catch (Exception)
-            {
-                {
-                    var kpss = ddsSession.FindElementByWindowsUIAutomation("btnAvailableRefresh");
-                    Log(kpss);
-                }
-            };
-            return;
-            var edits = ddsSession.FindElementsByClassName("TextBox");
-            //var edits = ddsSession.FindElementsByTagName("ControlType.Text");
-            Assert.AreNotEqual(0, edits.Count);
-            LoopAndLog(edits);
-            var firstEdit = ddsSession.FindElementByClassName("TextBox");
-            firstEdit.Click();
-            //ddsSession.FindElementByAccessibilityId("btnSearch").Click();
-            //var children = firstEdit.FindElementsByClassName("TextBlock");
-            //LoopAndLog(children);
-            //edits[0].SendKeys("h");
-        }
-
-        [TestMethod]
-        public void MyTestMethod()
-        {
             //var topLevel = ddsSession.FindElementsByXPath("/*[1]/*");
-            //Console.WriteLine("topLevel.Count {0}", topLevel.Count);
-            //foreach (var item in topLevel.Where(i => i.Displayed))
-            //{
-            //	Console.WriteLine("Tag: {0}, Text: {1}", item.TagName, item.Text);
-            //}
-            var elm3 = ddsSession.FindElementsByTagName("edit");
-            var elm4 = ddsSession.FindElementsByXPath("//Button");
-            var elm2 = ddsSession.FindElementsByTagName("ControlType.Edit");
-            var kk = ddsSession.FindElementsByXPath("//Button[text = 'reset']");
-            Assert.IsTrue(kk.Count > 0);
-            var k = ddsSession.FindElementsByXPath("//Button").Where(e => !string.IsNullOrEmpty(e.Text));
-            foreach (var item in k)
-            {
-                Console.WriteLine(item.Text);
-            }
-            //elm2.SendKeys("hi");
-            //var elm = ddsSession.FindElementByLinkText("Search");
-            //var ieServer = ddsSession.FindElementByClassName("Internet Explorer_Server");
-            //var userName = ieServer.FindElementByAccessibilityId("userName");
-            //userName.Clear();
-            //userName.SendKeys("koko");
-            //var password = ieServer.fin
+        }
+
+        [TestMethod]
+        public void CheckoutFirstCase()
+        {
+            CheckAndSelectTabItem(TabNames.Available);
+            var btnCheckout = ddsSession.FindElementByAccessibilityId("btnCheckout");
+            btnCheckout.Click();
+            Wait(40);
+            Assert.IsTrue(GetTabItemIsSelected(TabNames.Model));
+        }
+
+        [TestMethod]
+        public void OpenFirstCaseModel()
+        {
+            CheckAndSelectTabItem(TabNames.CheckedOut);
+            var btnOpen = ddsSession.FindElementByAccessibilityId("btnOpen");
+            btnOpen.Click();
+            Wait(40);
+            Assert.IsTrue(GetTabItemIsSelected(TabNames.Model));
         }
 
         [TestMethod]
@@ -156,16 +97,29 @@ namespace DDSAutomation
             WindowsElement ieServer;
             try
             {
-                ieServer = ddsSession.FindElementByClassName("Internet Explorer_Server");
+                ieServer = GetIeServer();
             }
             catch (NotFoundException ex)
             {
-
-                throw;
+                if (DigitalDesignIntroHeaderPresent())
+                {
+                    SelectShitFromRightMenu("Login");
+                    ieServer = GetIeServer();
+                }
+                else
+                {
+                    SelectShitFromRightMenu("Logout");
+                    if (DigitalDesignIntroHeaderPresent())
+                    {
+                        SelectShitFromRightMenu("Login");
+                        ieServer = GetIeServer();
+                    }
+                    throw new InvalidOperationException();
+                }
             }
             var userName = ieServer.FindElementByAccessibilityId("Username");
             userName.Clear();
-            userName.SendKeys("superadmin");
+            userName.SendKeys("SuperAdmin");
             var password = ieServer.FindElementByAccessibilityId("Password");
             password.Clear();
             password.SendKeys("Password123!");
@@ -176,24 +130,67 @@ namespace DDSAutomation
         [TestMethod]
         public void Logout()
         {
-            WindowsElement ieServer;
-            try
-            {
-                ieServer = ddsSession.FindElementByClassName("Internet Explorer_Server");
-            }
-            catch (NotFoundException ex)
-            {
+            SelectShitFromRightMenu("Logout");
+            Assert.IsTrue(DigitalDesignIntroHeaderPresent());
+        }
 
-                throw;
+        private void CheckAndSelectTabItem(string tabItemName, int waitTimeInSeconds = 5)
+        {
+            var isSelected = GetTabItemIsSelected(tabItemName);
+            if (!isSelected)
+            {
+                ClickTabItem(tabItemName, waitTimeInSeconds);
             }
-            var userName = ieServer.FindElementByAccessibilityId("Username");
-            userName.Clear();
-            userName.SendKeys("superadmin");
-            var password = ieServer.FindElementByAccessibilityId("Password");
-            password.Clear();
-            password.SendKeys("Password123!");
-            var signInBtn = ieServer.FindElementByName("Sign In");
-            signInBtn.Click();
+        }
+
+        private void ClickTabItem(string tabItemName, int waitSeconds = 2)
+        {
+            var tabItem = ddsSession.FindElementByName(tabItemName);
+            tabItem.Click();
+            Wait(waitSeconds);
+        }
+
+        private bool GetTabItemIsSelected(string tabItemName)
+        {
+            var tabItem = ddsSession.FindElementByName(tabItemName);
+            var isSelected = bool.Parse(tabItem.GetAttribute("SelectionItem.IsSelected"));
+            return isSelected;
+        }
+
+        private WindowsElement GetIeServer()
+        {
+            return ddsSession.FindElementByClassName("Internet Explorer_Server");
+        }
+
+        private void SelectShitFromRightMenu(string elementName)
+        {
+            var rightWindowCommands = ddsSession.FindElementByClassName("RightWindowCommands");
+            var menuItem = rightWindowCommands.FindElementByClassName("MenuItem");
+            menuItem.Click();
+            Wait();
+            var popUp = ddsSession.FindElementByClassName("Popup");
+            var logoutMenuItem = popUp.FindElementByName(elementName);
+            AssertElementIsInvokable(logoutMenuItem);
+            logoutMenuItem.Click();
+            Wait();
+        }
+
+        private bool DigitalDesignIntroHeaderPresent()
+        {
+            //var element = ddsSession.FindElementByClassName("TextBlock");
+            var elements = ddsSession.FindElementsByName("Digital Design Suite");
+            return elements.Count > 0;
+        }
+
+        private void AssertElementIsInvokable(AppiumWebElement element)
+        {
+            var isIt = bool.Parse(element.GetAttribute("IsInvokePatternAvailable"));
+            Assert.IsTrue(isIt, $"Element {element} is not invokable");
+        }
+
+        private void Wait(int seconds = 2)
+        {
+            Thread.Sleep(seconds * 1000);
         }
     }
 }
